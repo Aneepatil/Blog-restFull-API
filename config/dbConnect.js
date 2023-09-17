@@ -1,15 +1,15 @@
 import mongoose from "mongoose";
+import dotenv from 'dotenv'
+dotenv.config()
 
 export const dbConnect = async () => {
-    try {
-      const connted = await mongoose.connect(
-        "mongodb+srv://cubiccodeBackendClass:0MZOWpzXIcczXMwv@cluster0.xdluwg7.mongodb.net/cubiccodeBackendClass?retryWrites=true&w=majority"
-      );
-  
-      console.log(
-        `MongoDB Connection Successfull and the host is ${connted.connection.host}`
-      );
-    } catch (error) {
-      console.log(error);
-    }
-  };
+  try {
+    const connted = await mongoose.connect(process.env.MONGO_URL);
+
+    console.log(
+      `MongoDB Connection Successfull and the host is ${connted.connection.host}`
+    );
+  } catch (error) {
+    console.log(error);
+  }
+};
