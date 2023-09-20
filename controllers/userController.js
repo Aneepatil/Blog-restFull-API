@@ -1,6 +1,12 @@
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 import { UserModel } from "../models/UserModel.js";
 import { hashPassword } from "../utils/hashPassword.js";
+import dotenv from "dotenv";
+dotenv.config();
+
+import { generateToken } from "../utils/generateToken.js";
+import { getTheTokenFromHeader } from "../utils/getTheTokenFromHeader.js";
 
 //  ======================================================== Get all User ========================================================
 
@@ -56,31 +62,38 @@ export const registerUser = async (req, res) => {
   }
 };
 
-
 //  ======================================================== Login User ========================================================
 
 export const loginUser = async (req, res) => {
   const { email, password } = req.body;
   try {
-    
     // Check email is registered
-    const foundUser = await UserModel.findOne({email})
-    if(!foundUser){
+    const foundUser = await UserModel.findOne({ email });
+    if (!foundUser) {
       return res.status(404).json({ message: "Invalid login Credentials" });
     }
 
     // Check the password if correct or not / comapre
 
-    const originalPassword = await bcrypt.compare(password,foundUser.password)
-    if(!originalPassword){
+    const originalPassword = await bcrypt.compare(password, foundUser.password);
+    if (!originalPassword) {
       return res.status(404).json({ message: "Invalid login Credentials" });
     }
 
-    // Send login response
-    if(foundUser && originalPassword){
-      return res.status(404).json({ message: "User Login Successfull" });
-    }
+    // Generate Toke
+    // const token = jwt.sign({ foundUser }, process.env.JWT_SEC_KEY, {
+    //   expiresIn: "1d",
+    // });
 
+    const token = generateToken(foundUser._id);
+    console.log(token);
+    // Send login response
+    if (foundUser && originalPassword) {
+      const { password, ...other } = foundUser._doc;
+      return res
+        .status(200)
+        .json({ message: "User Login Successfull", data: { ...other, token } });
+    }
   } catch (error) {
     res.status(500).json({ message: "Somthing went wrong", error });
   }
@@ -109,13 +122,11 @@ export const updateUser = async (req, res) => {
         { username, email, password },
         { new: true }
       );
-      res.status(201).json({ message: "User is updated", updatedUser });
+      return res.status(201).json({ message: "User is updated", updatedUser });
     }
-
   } catch (error) {
     res.status(500).json({ message: "Somthing went wrong", error });
   }
-
 };
 
 //  ======================================================== Delete User ========================================================
@@ -125,6 +136,32 @@ export const deleteUser = async (req, res) => {
   try {
     await UserModel.findByIdAndDelete(id);
     res.status(400).json({ message: "User is Deleted Successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Somthing went wrong", error });
+  }
+};
+
+export const userProfile = async (req, res) => {
+  try {
+    // const token=req.headers.authorization.split(' ')[1]
+    const token = getTheTokenFromHeader(req);
+    if (token === undefined) {
+      console.log("Token Not Provided in the header");
+    } else {
+      const verifyToken = jwt.verify(
+        token,
+        process.env.JWT_SEC_KEY,
+        (error, data) => {
+          if (error) {
+            return res.json({ message: "Expired / Invalid Token" });
+          } else {
+            console.log(data);
+          }
+        }
+      );
+    }
+
+    res.status(400).json({ message: "User profile Route" });
   } catch (error) {
     res.status(500).json({ message: "Somthing went wrong", error });
   }
