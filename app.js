@@ -9,11 +9,11 @@ const app = express();
 app.use(express.json());
 
 // Data Base Config
-dbConnect();
+dbConnect(app);
 
 // Routes
-app.use('/api/v1/blogs',blogRoute)
-app.use('/api/v1/users',userRoute)
+app.use("/api/v1/blogs", blogRoute);
+app.use("/api/v1/users", userRoute);
 
 // /api/v1/users/all-users
 

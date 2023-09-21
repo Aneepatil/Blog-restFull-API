@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
-import dotenv from 'dotenv'
-dotenv.config()
+import dotenv from "dotenv";
+dotenv.config();
 
 export const dbConnect = async () => {
   try {
@@ -9,6 +9,8 @@ export const dbConnect = async () => {
     console.log(
       `MongoDB Connection Successfull and the host is ${connted.connection.host}`
     );
+
+
   } catch (error) {
     console.log(error);
   }

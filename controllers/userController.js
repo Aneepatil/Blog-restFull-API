@@ -36,7 +36,7 @@ export const getSingleUser = async (req, res) => {
 //  ======================================================== Register User ========================================================
 
 export const registerUser = async (req, res) => {
-  const { username, email, password } = req.body;
+  const { username, email, password,isAdmin } = req.body;
   try {
     // Check if email exist exist in database
     const isEmailExist = await UserModel.findOne({ email });
@@ -54,6 +54,7 @@ export const registerUser = async (req, res) => {
     const newUser = await UserModel.create({
       username,
       email,
+      isAdmin,
       password: await hashPassword(password),
     });
     res.status(201).json({ message: "New User is created", newUser });
@@ -86,7 +87,6 @@ export const loginUser = async (req, res) => {
     // });
 
     const token = generateToken(foundUser._id);
-    console.log(token);
     // Send login response
     if (foundUser && originalPassword) {
       const { password, ...other } = foundUser._doc;
@@ -141,28 +141,4 @@ export const deleteUser = async (req, res) => {
   }
 };
 
-export const userProfile = async (req, res) => {
-  try {
-    // const token=req.headers.authorization.split(' ')[1]
-    const token = getTheTokenFromHeader(req);
-    if (token === undefined) {
-      console.log("Token Not Provided in the header");
-    } else {
-      const verifyToken = jwt.verify(
-        token,
-        process.env.JWT_SEC_KEY,
-        (error, data) => {
-          if (error) {
-            return res.json({ message: "Expired / Invalid Token" });
-          } else {
-            console.log(data);
-          }
-        }
-      );
-    }
 
-    res.status(400).json({ message: "User profile Route" });
-  } catch (error) {
-    res.status(500).json({ message: "Somthing went wrong", error });
-  }
-};
